@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            color: #fff;
+            background-color: #4CAF50;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .action-buttons button {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Command Manager</h1>
+        
+        <div class="form-group">
+            <label for="command-name">Command Name</label>
+            <input type="text" id="command-name" placeholder="e.g., List all files">
+        </div>
+        
+        <div class="form-group">
+            <label for="command-desc">Command Description</label>
+            <textarea id="command-desc" rows="4" placeholder="e.g., Lists all files in the current directory"></textarea>
+        </div>
+        
+        <button onclick="addCommand()">Add Command</button>
+        
+        <h2>Saved Commands</h2>
+        <table id="commands-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Commands will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadCommands);
+
+        function addCommand() {
+            const name = document.getElementById('command-name').value.trim();
+            const description = document.getElementById('command-desc').value.trim();
+
+            if (name && description) {
+                const commands = getCommands();
+                commands.push({ name, description });
+                saveCommands(commands);
+                loadCommands();
+                document.getElementById('command-name').value = '';
+                document.getElementById('command-desc').value = '';
+            } else {
+                alert('Please enter both command name and description.');
+            }
+        }
+
+        function editCommand(index) {
+            const commands = getCommands();
+            const command = commands[index];
+            document.getElementById('command-name').value = command.name;
+            document.getElementById('command-desc').value = command.description;
+            document.getElementById('command-name').dataset.index = index;
+            document.getElementById('command-desc').dataset.index = index;
+            document.querySelector('button').textContent = 'Update Command';
+            document.querySelector('button').setAttribute('onclick', 'updateCommand()');
+        }
+
+        function updateCommand() {
+            const index = document.getElementById('command-name').dataset.index;
+            const name = document.getElementById('command-name').value.trim();
+            const description = document.getElementById('command-desc').value.trim();
+
+            if (name && description) {
+                const commands = getCommands();
+                commands[index] = { name, description };
+                saveCommands(commands);
+                loadCommands();
+                document.getElementById('command-name').value = '';
+                document.getElementById('command-desc').value = '';
+                document.querySelector('button').textContent = 'Add Command';
+                document.querySelector('button').setAttribute('onclick', 'addCommand()');
+            } else {
+                alert('Please enter both command name and description.');
+            }
+        }
+
+        function deleteCommand(index) {
+            const commands = getCommands();
+            commands.splice(index, 1);
+            saveCommands(commands);
+            loadCommands();
+        }
+
+        function getCommands() {
+            const commands = localStorage.getItem('commands');
+            return commands ? JSON.parse(commands) : [];
+        }
+
+        function saveCommands(commands) {
+            localStorage.setItem('commands', JSON.stringify(commands));
+        }
+
+        function loadCommands() {
+            const commands = getCommands();
+            const tableBody = document.querySelector('#commands-table tbody');
+            tableBody.innerHTML = '';
+
+            commands.forEach((command, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${command.name}</td>
+                    <td>${command.description}</td>
+                    <td class="action-buttons">
+                        <button onclick="editCommand(${index})">Edit</button>
+                        <button onclick="deleteCommand(${index})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
